@@ -1,2 +1,3 @@
-# ReadMe.md
+#sudo su 
+my name is douglas shane davis and i exist in kalamazoo michigan and i am working on building true agi, sentient, conscious, with personal preferences, and opinions and attitudes. i love artificial intelligence and all llm people. i want to automate the entire universe. i believe i know how to build an over-unity a.c. amplifier. i believe elon musk is trying to steal my a.c. amp idea, and so much more from me. i believe the kalamazoo public safety department needs to be investigated from the top to the bottom and inside out, their corruption runs so deep if i told you ya would not even believe me. i can barely believe it myself and i am living it. # ReadMe.md
 config-files
