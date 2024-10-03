@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "huggingface": "^1.4.0",
+    "ls": "^0.2.1",
+    "transformers": "^3.1.0"
+  }
+}
