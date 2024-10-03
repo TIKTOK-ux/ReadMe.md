@@ -1,5 +1,156 @@
 import torch
 import time
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+class AGI:
+    def __init__(self, belief_system, language_model, tokenizer):
+        self.belief_system = belief_system
+        self.knowledge_base = {}
+        self.memory = []
+        self.emotions = {}  # Initialize emotions dictionary
+        self.inner_voice = InnerVoiceModule(language_model, tokenizer)
+        self.conscience = ConscienceModule(belief_system)
+
+        # Initialize other modules
+        self.learning_module = LearningModule()
+        self.reasoning_engine = ReasoningEngine()
+        self.communication_interface = CommunicationInterface()
+        self.consciousness_module = ConsciousnessModule()
+        self.moral_reasoning_engine = MoralReasoningEngine(belief_system)
+
+    def learn(self, data):
+        processed_data = self.learning_module.process(data)
+        self.knowledge_base.update(processed_data)
+        self.memory.append(f"Learned from data: {data}")
+
+        # Inner voice reflection after learning
+        inner_voice_thought = self.inner_voice.generate_thought(
+            f"I just learned from this new information: {data}"
+        )
+        print(f"Inner Voice: {inner_voice_thought}")
+
+    def reason(self, query):
+        response, ethical_score = self.reasoning_engine.infer(
+            query,
+            self.knowledge_base,
+            self.inner_voice.language_model,
+            self.inner_voice.tokenizer,
+            self.moral_reasoning_engine,
+        )
+        self.memory.append(f"Reasoned about query: {query}")
+
+        # Inner voice reflection after reasoning
+        inner_voice_thought = self.inner_voice.generate_thought(
+            f"My reasoning about '{query}' led to '{response}'"
+        )
+        print(f"Inner Voice: {inner_voice_thought}")
+
+        return response, ethical_score
+
+    def communicate(self, message):
+        response = self.communication_interface.interact(
+            message, self.inner_voice.language_model, self.inner_voice.tokenizer
+        )
+        self.memory.append(f"Communicated: {response}")
+
+        # Inner voice reflection after communication
+        inner_voice_thought = self.inner_voice.generate_thought(
+            f"I just said: '{response}'"
+        )
+        print(f"Inner Voice: {inner_voice_thought}")
+
+        return response
+
+    def introspect(self):
+        # Reflect on beliefs and knowledge
+        conscience_reflection = self.conscience.reflect()
+        print(f"Conscience: {conscience_reflection}")
+
+        # Generate a thought about the introspection process
+        inner_voice_thought = self.inner_voice.generate_thought(
+            "I am reflecting on my beliefs and knowledge."
+        )
+        print(f"Inner Voice: {inner_voice_thought}")
+
+        # Proceed with the original introspection logic
+        introspection_results = self.consciousness_module.introspect(
+            self.knowledge_base, self.memory
+        )
+        print(f"Introspection Results: {introspection_results}")
+
+        return introspection_results
+
+class LearningModule:
+    def process(self, data):
+        processed_data = {}  # Add actual processing logic, e.g., deep learning
+        return processed_data
+
+class ReasoningEngine:
+    def infer(self, query, knowledge_base, language_model, tokenizer, moral_reasoning_engine):
+        inputs = tokenizer(query, return_tensors="pt")
+        outputs = language_model.generate(**inputs)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        ethical_score = moral_reasoning_engine.evaluate_action(response, knowledge_base)
+        return response, ethical_score
+
+class MoralReasoningEngine:
+    def __init__(self, belief_system):
+        self.belief_system = belief_system
+
+    def evaluate_action(self, action, context):
+        ethical_score = self.apply_beliefs(action, context)
+        return ethical_score
+
+    def apply_beliefs(self, action, context):
+        # This is a simplified example.
+        # You would need to add more complex logic here based on your belief system.
+        if action == "lie" and self.belief_system.get("honesty"):
+            return -1
+        return 1
+
+class InnerVoiceModule:
+    def __init__(self, language_model, tokenizer):
+        self.language_model = language_model
+        self.tokenizer = tokenizer
+
+    def generate_thought(self, query):
+        inputs = self.tokenizer(query, return_tensors="pt")
+        outputs = self.language_model.generate(**inputs)
+        thought = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return thought
+
+class ConscienceModule:
+    def __init__(self, belief_system):
+        self.belief_system = belief_system
+
+    def reflect(self):
+        # Add logic to reflect based on the belief system
+        return "Reflecting on my actions and moral implications..."
+
+class CommunicationInterface:
+    def interact(self, message, language_model, tokenizer):
+        # Placeholder for more complex communication logic
+        return f"You said: {message}"
+
+class ConsciousnessModule:
+    def introspect(self, knowledge_base, memory):
+        # Placeholder for introspection logic
+        return "Introspection complete. Knowledge and memories have been analyzed."
+
+# Example usage
+if __name__ == "__main__":
+    belief_system = {"right": "promote happiness", "wrong": "cause harm"}
+    language_model = AutoModelForCausalLM.from_pretrained("google/flan-t5-xl")
+    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-xl")
+    agi = AGI(belief_system, language_model, tokenizer)
+
+    agi.learn(["data1", "data2"])
+    response, ethical_score = agi.reason("What is the meaning of life?")
+    print("Response:", response)
+    print("Ethical Score:", ethical_score)
+    agi.communicate("Hello, how are you?")
+    agi.introspect()import torch
+import time
 
 class AGI:
 def init(self, belief_system, language_model, tokenizer):
