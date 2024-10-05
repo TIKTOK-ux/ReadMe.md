@@ -1,0 +1,118 @@
+class GoalModule:
+    def __init__(self):
+        self.goals = []  
+        self.current_goal = None
+        self.action_history = []  # Log of actions taken
+        self.failed_attempts = {}  # Track failed attempts for each goal
+
+    def set_goal(self, goal, priority=1, completion_criteria=1):
+        """Sets a new goal with an optional priority and completion criteria."""
+        self.goals.append({'goal': goal, 'priority': priority, 'progress': 0, 'completion_criteria': completion_criteria})
+        self.goals.sort(key=lambda g: g['priority'], reverse=True)  
+        self.current_goal = self.goals[0]['goal']  
+        print(f"Goal set: {self.current_goal} (Priority: {priority})")
+
+    def select_action(self, knowledge_base, emotions, belief_system):
+        """Selects an action based on the current goal, knowledge base, emotions, and belief system."""
+        action = "No goal set"
+        if self.current_goal:
+            # Check if the goal is in the belief system
+            if self.current_goal in belief_system:
+                # If the goal is in the belief system, check its value
+                if belief_system[self.current_goal]:
+                    action = f"Ethically guided action towards: {self.current_goal}"
+                else:
+                    action = f"Action towards: {self.current_goal} (May need ethical review)"
+            else:
+                # If the goal is not in the belief system, proceed based on emotions
+                if emotions.get("frustration", 0) > 0.5:
+                    action = f"Resolving frustration while working on: {self.current_goal}"
+                elif emotions.get("motivation", 0) > 0.5:
+                    action = f"Motivated action towards: {self.current_goal}"
+                else:
+                    action = f"Action towards: {self.current_goal}"
+            self.action_history.append(action)  # Log the action
+        return action
+
+    def update_state(self, result):
+        """Updates the goal module based on the result of an action."""
+        print(f"Updated state with result: {result}")
+        if "success" in result.lower():
+            if self.goals:  # Check if there are any goals
+                completed_goal = self.goals[0]
+                completed_goal['progress'] += 1  
+                print(f"Goal '{completed_goal['goal']}' progressed! (Progress: {completed_goal['progress']})")
+
+                if completed_goal['progress'] >= completed_goal['completion_criteria']:
+                    self.goals.pop(0)  
+                    print(f"Goal '{completed_goal['goal']}' completed!")
+                    if self.goals:
+                        self.current_goal = self.goals[0]['goal']  
+                        print(f"New current goal: {self.current_goal}")
+                    else:
+                        self.current_goal = None
+                        print("All goals completed!")
+        else:
+            print(f"Goal '{self.current_goal}' is ongoing or needs reevaluation.")
+            self.failed_attempts[self.current_goal] = self.failed_attempts.get(self.current_goal, 0) + 1
+            self.reevaluate_goals()  # Re-evaluate on failure
+
+    def reevaluate_goals(self):
+        """Re-evaluates goals based on current progress, emotional state, and failed attempts."""
+        print("Re-evaluating goals...")
+        goals_to_remove = []
+
+        for goal in self.goals:
+            if goal['progress'] < goal['completion_criteria'] / 2 or self.failed_attempts.get(goal['goal'], 0) > 3:
+                print(f"Consider revising or abandoning goal: {goal['goal']} due to low progress or repeated failures.")
+                goals_to_remove.append(goal)  # Mark the whole goal dictionary for removal
+
+        # Remove flagged goals
+        for goal_to_remove in goals_to_remove:
+            self.goals.remove(goal_to_remove)  # Remove the goal dictionary from the list
+            print(f"Goal '{goal_to_remove['goal']}' abandoned.")
+
+        # Update current goal
+        if self.goals:
+            self.current_goal = self.goals[0]['goal']
+            print(f"New current goal: {self.current_goal}")
+        else:
+            self.current_goal = None
+            print("All goals completed!")
+
+    def update_emotions(self, result, emotions):
+        """Adjusts emotions based on success or failure of actions."""
+        if "success" in result.lower():
+            emotions['motivation'] = min(1.0, emotions.get('motivation', 0) + 0.2)
+            emotions['frustration'] = max(0, emotions.get('frustration', 0) - 0.1)  # Reduced frustration decrease
+        else:
+            emotions['motivation'] = max(0, emotions.get('motivation', 0) - 0.1)  # Reduced motivation decrease
+            emotions['frustration'] = min(1.0, emotions.get('frustration', 0) + 0.2)
+        return emotions
+
+# Example Usage
+belief_system = {'help humanity thrive': True, 'learn AI': True, 'make a mess': False}
+emotions = {'motivation': 0.8, 'frustration': 0.2}
+
+goal_module = GoalModule()
+goal_module.set_goal('help humanity thrive', priority=3, completion_criteria=3)
+goal_module.set_goal('learn AI', priority=2, completion_criteria=2)
+goal_module.set_goal('make a mess', priority=1, completion_criteria=1)
+
+action = goal_module.select_action({}, emotions, belief_system)
+print(action)  # Output: Ethically guided action towards: help humanity thrive
+
+goal_module.update_state("Action completed with success!")
+action = goal_module.select_action({}, emotions, belief_system)
+print(action)  # Output: Ethically guided action towards: help humanity thrive
+
+# Example of a failure and re-evaluation
+goal_module.update_state("Action failed!")
+goal_module.update_state("Action failed!")
+goal_module.update_state("Action failed!")
+goal_module.update_state("Action failed!")  # This should trigger abandoning the goal
+action = goal_module.select_action({}, emotions, belief_system)
+print(action)  # Output: Motivated action towards: learn AI
+
+# Print action history for review
+print("Action History:", goal_module.action_history)
