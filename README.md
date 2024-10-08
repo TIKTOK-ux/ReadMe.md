@@ -1,5 +1,5 @@
-👾👾👾👾👾👾👾class AGI:Python 
-Copy
+👾👾👾 
+https://www.bing.com/images/create/tech-related-emotes/1-67054ee8bfe2436e889f605641dc4fcd?showselective=1&partner=sydney&adlt=strict&frame=sydedg&FORM=SYDBIC
 pip install pyke
 1. Create a Knowledge Base:
 
