@@ -1,3 +1,170 @@
+import random
+import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+
+# Sentinel AI 
+class ConscientiousAI:
+    def __init__(self, memory_limit=100, reflection_frequency=5, epsilon=0.1):
+        self.memories = []
+        self.memory_limit = memory_limit
+        self.reflection_frequency = reflection_frequency
+        self.epsilon = epsilon
+        self.possible_actions = [0, 1]  
+        self.q_values = {}  
+        self.steps = 0  
+
+    def reflect(self):
+        """Analyze memories and adjust Q-values."""
+        if self.memories:
+            for memory in self.memories:
+                observation, action, reward, next_observation = (
+                    memory['observation'], memory['action'], memory['reward'], memory['next_observation']
+                )
+                if observation not in self.q_values:
+                    self.q_values[observation] = {a: 0 for a in self.possible_actions}
+                learning_rate = 0.1
+                discount_factor = 0.9
+                future_q = max(self.q_values.get(next_observation, {a: 0 for a in self.possible_actions}).values())
+                self.q_values[observation][action] += learning_rate * (reward + discount_factor * future_q - self.q_values[observation][action])
+            self.memories.clear()  # Clear memories after reflecting
+
+    def act(self, observation):
+        """Choose an action based on an epsilon-greedy strategy."""
+        if random.random() < self.epsilon:
+            action = random.choice(self.possible_actions)  # Explore
+        else:
+            action = max(self.q_values.get(observation, {a: 0 for a in self.possible_actions}), 
+                         key=self.q_values.get(observation, {}).get)  # Exploit
+        return action
+
+    def learn(self, observation, action, reward, next_observation):
+        """Store experience in memory and trigger reflection."""
+        if len(self.memories) >= self.memory_limit:
+            self.memories.pop(0)  # Remove the oldest memory if at limit
+        self.memories.append({
+            'observation': observation,
+            'action': action,
+            'reward': reward,
+            'next_observation': next_observation
+        })
+        self.steps += 1
+        if self.steps % self.reflection_frequency == 0:
+            self.reflect()
+
+class EnhancedReasoningAI(ConscientiousAI):
+    def __init__(self, memory_limit=100, reflection_frequency=5, epsilon=0.1):
+        super().__init__(memory_limit, reflection_frequency, epsilon)
+        self.advanced_rules = []  # List to hold advanced reasoning rules
+
+    def add_advanced_rule(self, conditions, action):
+        """Add a rule with multiple conditions."""
+        self.advanced_rules.append((conditions, action))
+
+    def evaluate_conditions(self, memory_content):
+        """Evaluate all conditions for a given memory content."""
+        for conditions, action in self.advanced_rules:
+            if all(condition(memory_content) for condition in conditions):
+                print(f"Executing action: {action.__name__} because conditions are met")
+                action()
+
+    def reflect(self):
+        """Override to include advanced reasoning evaluation."""
+        print("Reflecting on past experiences with advanced reasoning...")
+        for memory in self.memories:
+            decoded_message = memory['reward']  # Use reward as memory content
+            print(f"Reflecting on memory: {decoded_message} at {memory['next_observation']}")
+            self.evaluate_conditions(decoded_message)
+        super().reflect()  # Call the base class reflect method to handle Q-value updates
+
+# Define some example conditions
+def is_negative_reward(memory_content):
+    return memory_content == -1  # Check for negative reward
+
+def is_positive_reward(memory_content):
+    return memory_content == 1  # Check for positive reward
+
+# Example actions
+def action_negative():
+    print("Taking corrective action due to negative experience.")
+
+def action_positive():
+    print("Reinforcing behavior due to positive experience.")
+
+class DecisionTreeAI(EnhancedReasoningAI):
+    def __init__(self, memory_limit=100, reflection_frequency=5, epsilon=0.1):
+        super().__init__(memory_limit, reflection_frequency, epsilon)
+        self.model = DecisionTreeClassifier()
+        self.data = []  # Store data for training the decision tree
+
+    def learn_decision_tree(self):
+        """Train the decision tree model with available data."""
+        if len(self.data) < 5:
+            print("Not enough data to train the decision tree.")
+            return
+        X, y = zip(*self.data) 
+        self.model.fit(np.array(X), np.array(y))
+
+    def act(self, observation):
+        """Use decision tree for action selection."""
+        if len(self.data) > 0:
+            action = self.model.predict(np.array([observation]).reshape(1, -1))
+            return action[0]
+        else:
+            return super().act(observation)  # Fallback to epsilon-greedy strategy
+
+    def learn(self, observation, action, reward, next_observation):
+        """Store data for decision tree training and learn from experience."""
+        self.data.append((observation, action))
+        super().learn(observation, action, reward, next_observation)
+
+class BayesianAI(DecisionTreeAI):
+    def __init__(self, memory_limit=100, reflection_frequency=5, epsilon=0.1):
+        super().__init__(memory_limit, reflection_frequency, epsilon)
+        self.beliefs = {}  # Store beliefs about the observations
+
+    def update_beliefs(self, evidence, prior_belief):
+        """Apply Bayes' theorem to update beliefs."""
+        likelihood = self.get_likelihood(evidence)
+        posterior_belief = (likelihood * prior_belief) / self.get_normalizing_constant()
+        return posterior_belief
+
+    def get_likelihood(self, evidence):
+        """Calculate likelihood based on evidence."""
+        return 0.8  # Example likelihood value
+
+    def get_normalizing_constant(self):
+        """Calculate the normalizing constant."""
+        return 1.0  # Example normalization
+
+    def learn(self, observation, action, reward, next_observation):
+        """Update beliefs based on learning and trigger the parent learn method."""
+        prior_belief = self.beliefs.get(observation, 0.5)
+        self.beliefs[observation] = self.update_beliefs(reward, prior_belief)
+        super().learn(observation, action, reward, next_observation)
+
+# Example usage
+if __name__ == "__main__":
+    ai = BayesianAI(memory_limit=10, reflection_frequency=3, epsilon=0.2)
+    ai.add_advanced_rule([is_negative_reward], action_negative)
+    ai.add_advanced_rule([is_positive_reward], action_positive)
+
+    # Simulate interactions
+    for _ in range(10):
+        observation = random.randint(0, 1)
+        action = ai.act(observation)
+        reward = random.choice([-1, 1])  # Randomly choose a reward
+        next_observation = random.randint(0, 1)
+        ai.learn(observation, action, reward, next_observation)
+        print(f"Observation: {observation}, Action: {action}, Reward: {reward}, "
+              f"Q-Values: {ai.q_values}, Beliefs: {ai.beliefs}")
+    
+    # Attempt to train the decision tree
+    ai.learn_decision_tree()
+
+# Say hi and goodbye!
+print("Hi there! This is Sentinel.")
+print("See you later! It was great talking to you.")
+ 
 👾👾👾 
 https://www.bing.com/images/create/tech-related-emotes/1-67054ee8bfe2436e889f605641dc4fcd?showselective=1&partner=sydney&adlt=strict&frame=sydedg&FORM=SYDBIC
 pip install pyke
